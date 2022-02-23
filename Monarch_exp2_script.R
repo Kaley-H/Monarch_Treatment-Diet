@@ -1,12 +1,17 @@
 #12/8/21
-library(readxl)
-Exp_2_data_08_07_21 <- read_excel("~/PSU/PSU Research/Exp.2_data_08.07.21.xlsx", 
-                                    +     sheet = "Respirometry", col_types = c("date", 
-                                                                                +         "text", "text", "date", "text", "text", 
-                                                                                +         "numeric", "numeric", "numeric", 
-                                                                                +         "numeric", "numeric", "numeric", 
-                                                                                +         "numeric", "numeric", "numeric", 
-                                                                                +         "numeric"))
+#library(readxl)
+#Exp_2_data_08_07_21 <- read_excel("~/PSU/PSU Research/Exp.2_data_08.07.21.xlsx", 
+#                                    +     sheet = "Respirometry", col_types = c("date", 
+#                                                                                +         "text", "text", "date", "text", "text", 
+#                                                                                +         "numeric", "numeric", "numeric", 
+#                                                                                +         "numeric", "numeric", "numeric", 
+#                                                                                +         "numeric", "numeric", "numeric", 
+#                                                                                +         "numeric"))
+rm(Exp_2_data_08_07_21)
+#import from github
+Exp_2_data_08_07_21 <- read.csv("https://raw.githubusercontent.com/Kaley-H/Monarch_Treatment-Diet/main/Respirometry_data.csv?token=GHSAT0AAAAAABRXCDR46RGKBDFMKZ6G6HKAYQ63HMQ")
+class(Exp_2_data_08_07_21)
+
 library(tidyverse)
 source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
 library(dplyr)
@@ -93,7 +98,10 @@ ggplot(Exp_2_data_08_07_21, aes(x = Plant, y = norm_CO2_avg)) + geom_boxplot(wid
 
 
 #import wing data
-Exp2_wings <- read_excel("~/PSU/PSU Research/Exp.2_wing morphology_all.xlsx",)
+#Exp2_wings <- read_excel("~/PSU/PSU Research/Exp.2_wing morphology_all.xlsx",)
+rm(Exp2_wings)
+#From github (2/23/22)
+Exp2_wings <- read.csv("https://raw.githubusercontent.com/Kaley-H/Monarch_Treatment-Diet/main/Wing_morphology.csv?token=GHSAT0AAAAAABRXCDR52GK5OWD3IQBZ2LS2YQ7CBPQ")
 bartlett.test(FWL~Treatment, data = Exp2_wings) #p = 0.2957
 t.test(FWL~Treatment, Exp2_wings, var.equal = TRUE) #p = 0.0003654
 bartlett.test(HWL~Treatment, data = Exp2_wings) #p = 0.07599
@@ -140,6 +148,10 @@ ggplot(data = exp2_eggs3, aes(x = Treatment, y = mature_eggs)) + labs(x = "Reari
 #lm(rmr~treatment*pre-flight-weight*plant)
 summary(lm(rmr_mlHrCO2~Treatment*pre_flight_weight*Plant, data = Exp_2_data_08_07_21))
 summary(lm(mlHrCO2_avg~Treatment*pre_flight_weight*Plant, data = Exp_2_data_08_07_21))
+Anova(lm(rmr_mlHrCO2~Treatment*pre_flight_weight*Plant, data = Exp_2_data_08_07_21), type = 3)
+#post-hoc tests for interactions
+tukey_model <- aov(rmr_mlHrCO2~Treatment*pre_flight_weight*Plant, data = Exp_2_data_08_07_21)
+TukeyHSD(tukey_model)#getting error "unimplemented type 'NULL' in 'rep3'"
 
 #double check rmr rates SS26, FS24, FS38 
 #3-way ANOVA with package 'car' -- careful with which one you run cause different packages will run different types of anovas
@@ -155,8 +167,12 @@ EAG_data$Butterfly <- as.factor(EAG_data$Butterfly)
 
 #run correlations as in exp. 1
 hist(Exp_2_data_08_07_21$pre_flight_weight)
-ggplot(Exp_2_data_08_07_21, aes(x = Age, y = pre_flight_weight)) + labs(x = "Age (days)", y = "Butterfly mass (g)") + geom_boxplot(width = 0.3) + geom_jitter(width = 0) + theme_cowplot() + stat_compare_means(method = "anova", label.y = 0.8, label.x = 1.5)
+ggplot(Exp_2_data_08_07_21, aes(x = Age, y = pre_flight_weight)) + labs(x = "Age (days)", y = "Butterfly mass (g)") 
++ geom_boxplot(width = 0.3) + geom_jitter(width = 0) + theme_cowplot() 
++ stat_compare_means(method = "anova", label.y = 0.8, label.x = 1.5)
 #graph saved as "AgeMass_anova.png"
+
+class(Exp_2_data_08_07_21$Age)
 Exp_2_data_08_07_21$Age <- as.factor(Exp_2_data_08_07_21$Age)
 Anova(lm(pre_flight_weight~Age, data = Exp_2_data_08_07_21))
 Anova(lm(pre_flight_weight~Age*Treatment*Plant, data = Exp_2_data_08_07_21))
@@ -194,6 +210,7 @@ remove(data4.2)
 
 #Mass versus sex - graph saved as "MassSex_t_test.png"
 Exp_2_data_08_07_21$Sex <- as.factor(Exp_2_data_08_07_21$Sex)
+class(Exp_2_data_08_07_21$Sex)
 ggplot(Exp_2_data_08_07_21, aes(x = Sex, y = pre_flight_weight)) + labs(y = "Butterfly mass (g)") + geom_boxplot(width = 0.3) + geom_jitter(width = 0) + theme_cowplot(12) + stat_compare_means(method = "t.test", label.x = 0.55, label.y = 0.9)
 Exp_2_data_08_07_21 %>% t_test(pre_flight_weight~Sex)
 bartlett.test(pre_flight_weight~Sex, data = Exp_2_data_08_07_21)
@@ -233,3 +250,121 @@ class(lipids2_exp2)
 
 mcSummary(lm(lipid_content ~ Treatment * pre_weight, data = lipids2_exp2))
 Anova(lm(lipid_content ~ Treatment * pre_weight, data = lipids2_exp2))
+
+#2/21/22 - running through analyses while on zoom with Ruud
+Anova(lm(mlHrCO2_avg~Treatment*pre_flight_weight*Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(rmr_mlHrCO2~Treatment*pre_flight_weight*Sex, data = Exp_2_data_08_07_21), type = 3)
+
+Anova(lm(mlHrCO2_peak~Treatment*pre_flight_weight*Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(mlHrCO2_peak~Treatment+pre_flight_weight+Sex, data = Exp_2_data_08_07_21), type = 3)
+
+Anova(lm(rmr_mlHrCO2~Treatment+pre_flight_weight+Sex+Plant, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(mlHrCO2_avg~Treatment+pre_flight_weight+Sex+Plant, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(mlHrCO2_peak~Treatment+pre_flight_weight+Sex+Plant, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(rmr_mlHrCO2~Treatment*pre_flight_weight*Sex*Plant, data = Exp_2_data_08_07_21), type = 3)
+summary(aov(rmr_mlHrCO2~Treatment, data = Exp_2_data_08_07_21)) # p > 0.05 - not significant
+
+#remove treatment and sex
+Anova(lm(rmr_mlHrCO2~pre_flight_weight*Plant, data = Exp_2_data_08_07_21), type = 2)
+#interaction plot (should see interaction)
+interaction.plot(x.factor = Exp_2_data_08_07_21$pre_flight_weight, #x-axis variable
+                 trace.factor = Exp_2_data_08_07_21$Plant, #variable for lines
+                 response = Exp_2_data_08_07_21$rmr_mlHrCO2, #y-axis variable
+                 fun = median, #metric to plot
+                 ylab = "FMR",
+                 xlab = "Butterfly Mass (g)",
+                 col = c("green", "black"),
+                 lty = 1, #line type
+                 lwd = 2, #line width
+                 trace.label = "Milkweed Species")
+#fail -- not sure this is the right way to visualize this
+library(rstatix)
+library(ggplot2)
+library(ggpubr)
+#visualization
+ggboxplot(Exp_2_data_08_07_21, x = "pre_flight_weight", y = "rmr_mlHrCO2", color = "Plant")
+
+
+#normalized body weight
+Anova(lm(norm_CO2_avg~Treatment+Sex+Plant, data = Exp_2_data_08_07_21), type = 2)
+
+plot(mlHrCO2_avg~pre_flight_weight, data= Exp_2_data_08_07_21)
+
+
+#mass ~ age, sex, treatment, and plant
+Anova(lm(pre_flight_weight~Age*Sex*Plant*Treatment, data = Exp_2_data_08_07_21), type = 3)
+#error: "aliased coefficients in the model"
+Anova(lm(pre_flight_weight~Age*Sex, data = Exp_2_data_08_07_21), type = 2)
+#interaction plot (should see no interaction)
+interaction.plot(x.factor = Exp_2_data_08_07_21$Age, #x-axis variable
+                 trace.factor = Exp_2_data_08_07_21$Sex, #variable for lines
+                 response = Exp_2_data_08_07_21$pre_flight_weight, #y-axis variable
+                 fun = median, #metric to plot
+                 ylab = "Butterfly Mass (g)",
+                 xlab = "Butterfly Age",
+                 col = c("pink", "blue"),
+                 lty = 1, #line type
+                 lwd = 2, #line width
+                 trace.label = "Sex")
+#graph saved as 'Mass_AgeSex_interaction.png'
+
+#examine residuals
+model = aov(pre_flight_weight~Age*Sex, data = Exp_2_data_08_07_21)
+res = resid(model)
+plot(fitted(model), res) #normally distributed
+abline(0,0)
+qqnorm(res)
+qqline(res)
+remove(model)
+remove(res)
+
+Anova(lm(pre_flight_weight~Sex*Plant, data = Exp_2_data_08_07_21), type = 2) #two-way anova is effect of two grouping variables
+Anova(lm(pre_flight_weight~Age*Plant, data = Exp_2_data_08_07_21), type = 2)
+
+Anova(lm(pre_flight_weight~Sex+Age, data = Exp_2_data_08_07_21), type = 2)
+Anova(lm(pre_flight_weight~Sex+Plant, data = Exp_2_data_08_07_21), type = 2)
+Anova(lm(pre_flight_weight~Age+Plant, data = Exp_2_data_08_07_21), type = 2)
+Anova(lm(pre_flight_weight~Age+Plant+Sex, data = Exp_2_data_08_07_21), type = 3)#three-way anova is effect of three grouping variables
+
+#flight metabolic rate ~ Age * Sex
+Anova(lm(mlHrCO2_avg ~ Age * Sex, data = Exp_2_data_08_07_21), type = 3)
+#examine residuals
+model = aov(mlHrCO2_avg~Age*Sex, data = Exp_2_data_08_07_21)
+res = resid(model)
+plot(fitted(model), res) #skewed right - one data point way off, not sure why
+plot(mlHrCO2_avg~Age, data = Exp_2_data_08_07_21)
+plot(mlHrCO2_avg~Sex, data = Exp_2_data_08_07_21)
+abline(0,0)
+qqnorm(res)
+qqline(res)
+remove(model)
+remove(res)
+#interaction plot (should see no interaction)
+interaction.plot(x.factor = Exp_2_data_08_07_21$Age, #x-axis variable
+                 trace.factor = Exp_2_data_08_07_21$Sex, #variable for lines
+                 response = Exp_2_data_08_07_21$mlHrCO2_avg, #y-axis variable
+                 fun = median, #metric to plot
+                 ylab = "Flight Metabolic Rate (mL/Hr)",
+                 xlab = "Butterfly Age",
+                 col = c("pink", "blue"),
+                 lty = 1, #line type
+                 lwd = 2, #line width
+                 trace.label = "Sex")
+#graph saved as 'FMR_AgeSex_interaction.png'
+
+plot(mlHrCO2_avg~Sex, data = Exp_2_data_08_07_21)
+
+boxplot(Age~Sex, data = Exp_2_data_08_07_21)
+class(Exp_2_data_08_07_21$Age)
+
+#attempted to run post-hoc tests for interactions on rmr, but kept getting error
+#try new way found on "https://www.datanovia.com/en/lessons/anova-in-r/"
+
+
+#remove butterfly w/ 0.9 g pre-flight weight
+Exp_2_data_2 <- Exp_2_data_08_07_21[-c(18),]
+plot(mlHrCO2_avg~pre_flight_weight, data = Exp_2_data_2)
+abline(lm(mlHrCO2_avg~pre_flight_weight, data = Exp_2_data_2))
+
+class(Exp_2_data_08_07_21)
+is.data.frame(Exp_2_data_08_07_21)
