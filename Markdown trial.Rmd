@@ -1,0 +1,349 @@
+---
+title: "Monarch_Treatment-Diet"
+author: "Kaley Hallmark"
+date: "Started 2/22/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include = FALSE}
+library(cowplot)
+library(rstatix)
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+#install.packages("moments")
+library(moments)
+```
+## Main Questions: Treatment and Diet Effects on Physiology and Flight Metabolic Rate
+### Treatment
+- Did we successfully produce phenotypically distinct individuals with our rearing treatments?
+  - [ ] *Wing morphology*
+ 
+```{r}
+Exp2_wings <- read.csv("https://raw.githubusercontent.com/Kaley-H/Monarch_Treatment-Diet/main/Wing_morphology.csv?token=GHSAT0AAAAAABRXCDR52GK5OWD3IQBZ2LS2YQ7CBPQ")
+
+hist(Exp2_wings$FWL)
+shapiro.test(Exp2_wings$FWL)
+skewness(Exp2_wings$FWL, na.rm = TRUE) #not sure how much this matters that it's not normal
+ggboxplot(Exp2_wings, x = "Treatment", y = "FWL")
+
+#Models
+#Full linear model
+#Forewing length
+Anova(lm(FWL~Treatment*Plant*Sex, data = Exp2_wings), type = 3) #no significant interactions
+Anova(lm(FWL~Treatment+Plant+Sex, data = Exp2_wings), type = 2)
+
+#Forewing width
+Anova(lm(FWW~Treatment*Plant*Sex, data = Exp2_wings), type = 3) #no significant interactions
+Anova(lm(FWW~Treatment+Plant+Sex, data = Exp2_wings), type = 2)
+
+#Hindwing length
+Anova(lm(HWL~Treatment*Plant*Sex, data = Exp2_wings), type = 3) #no significant interactions
+Anova(lm(HWL~Treatment+Plant+Sex, data = Exp2_wings), type = 2)
+
+#Hindwing width
+Anova(lm(HWW~Treatment*Plant*Sex, data = Exp2_wings), type = 3) #no significant interactions
+Anova(lm(HWW~Treatment+Plant+Sex, data = Exp2_wings), type = 2)
+
+#Individual effects
+#FWL ~ Treatment
+summary(aov(FWL~Treatment, Exp2_wings))
+an1 <- Exp2_wings %>% anova_test(FWL ~ Treatment) %>% add_significance("p")
+ggplot(Exp2_wings, aes(x = Treatment, y = FWL)) + 
+  geom_boxplot(width = 0.3) + stat_boxplot(geom = "errorbar", width = 0.15) + 
+  labs(x = "Rearing Conditions", y = "Forewing Length (mm)", subtitle = get_test_label(an1, detailed = TRUE)) + 
+  theme_cowplot(12) + geom_jitter(width = 0)
+rm(an1)
+
+#HWL ~ Treatment
+summary(aov(HWL~Treatment, Exp2_wings))
+an2 <- Exp2_wings %>% anova_test(HWL ~ Treatment) %>% add_significance("p")
+ggplot(Exp2_wings, aes(x = Treatment, y = HWL)) + 
+  geom_boxplot(width = 0.3) + stat_boxplot(geom = "errorbar", width = 0.15) + 
+  labs(x = "Rearing Conditions", y = "Hindwing Length (mm)", subtitle = get_test_label(an2, detailed = TRUE)) + 
+  theme_cowplot(12) + geom_jitter(width = 0)
+rm(an2)
+
+#FWL ~ Sex
+summary(aov(FWL~Sex, data = Exp2_wings))
+an4 <- Exp2_wings %>% anova_test(FWL ~ Sex) %>% add_significance("p")
+ggplot(Exp2_wings, aes(x = Sex, y = FWL)) + 
+  geom_boxplot(width = 0.3) + stat_boxplot(geom = "errorbar", width = 0.15) + 
+  labs(y = "Forewing Length (mm)", subtitle = get_test_label(an4, detailed = TRUE))+   theme_cowplot(12) + geom_jitter(width = 0)
+rm(an4)
+
+#HWL ~ Sex
+summary(aov(HWL~Sex, data = Exp2_wings)) #unequal variances - tried a Welch's Anova as well but didn't change the p-value much
+an3 <- Exp2_wings %>% anova_test(HWL ~ Sex) %>% add_significance("p")
+ggplot(Exp2_wings, aes(x = Sex, y = HWL)) + 
+  geom_boxplot(width = 0.3) + stat_boxplot(geom = "errorbar", width = 0.15) + 
+  labs(y = "Hindwing Length (mm)", subtitle = get_test_label(an3, detailed = TRUE))+   theme_cowplot(12) + geom_jitter(width = 0)
+rm(an3)
+
+```
+- Did we successfully produce phenotypically distinct individuals with our rearing treatments?
+  - [x] *Wing morphology* 
+  - [ ] *Egg counts*
+```{r}
+
+```
+
+- Is there a difference in metabolic rates (resting and active) between fall- and summer-reared butterflies?
+```{r}
+Exp_2_data_08_07_21 <- read.csv("https://raw.githubusercontent.com/Kaley-H/Monarch_Treatment-Diet/main/Respirometry_data.csv?token=GHSAT0AAAAAABRXCDR46RGKBDFMKZ6G6HKAYQ63HMQ")
+Exp_2_data_08_07_21$Age <- as.factor(Exp_2_data_08_07_21$Age)
+Exp_2_data_08_07_21$Sex <- as.factor(Exp_2_data_08_07_21$Sex)
+
+#Full models
+Anova(lm(mlHrCO2_avg~Treatment*pre_flight_weight*Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(rmr_mlHrCO2~Treatment*pre_flight_weight*Sex, data = Exp_2_data_08_07_21), type = 3)
+
+Anova(lm(mlHrCO2_peak~Treatment*pre_flight_weight*Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(mlHrCO2_peak~Treatment+pre_flight_weight+Sex, data = Exp_2_data_08_07_21), type = 2)
+
+Anova(lm(rmr_mlHrCO2~Treatment+pre_flight_weight+Sex+Plant, data = Exp_2_data_08_07_21), type = 2)
+Anova(lm(mlHrCO2_avg~Treatment+pre_flight_weight+Sex+Plant, data = Exp_2_data_08_07_21), type = 2)
+Anova(lm(mlHrCO2_peak~Treatment+pre_flight_weight+Sex+Plant, data = Exp_2_data_08_07_21), type = 2)
+Anova(lm(rmr_mlHrCO2~Treatment*pre_flight_weight*Sex*Plant, data = Exp_2_data_08_07_21), type = 3)
+
+summary(aov(rmr_mlHrCO2~Treatment, data = Exp_2_data_08_07_21)) # p > 0.05 - not significant
+an_1 <- Exp_2_data_08_07_21 %>% anova_test(rmr_mlHrCO2~Treatment) %>% add_significance("p")
+ggplot(Exp_2_data_08_07_21, aes(x = Treatment, y = rmr_mlHrCO2)) + 
+  geom_boxplot(width = 0.3) + stat_boxplot(geom = "errorbar", width = 0.15) + 
+  labs(x = "Rearing Condition", y = "Resting Metabolic Rate (mL/Hr)", subtitle = get_test_label(an_1, detailed = TRUE))+   theme_cowplot(12) + geom_jitter(width = 0)
+rm(an_1)
+
+summary(aov(mlHrCO2_avg~Treatment, data = Exp_2_data_08_07_21)) # p = 0.06 - marginally significant
+an_2 <- Exp_2_data_08_07_21 %>% anova_test(mlHrCO2_avg~Treatment) %>% add_significance("p")
+ggplot(Exp_2_data_08_07_21, aes(x = Treatment, y = mlHrCO2_avg)) + 
+  geom_boxplot(width = 0.3) + stat_boxplot(geom = "errorbar", width = 0.15) + 
+  labs(x = "Rearing Condition", y = "Avg Flight Metabolic Rate (mL/Hr)", subtitle = get_test_label(an_2, detailed = TRUE))+   theme_cowplot(12) + geom_jitter(width = 0)
+rm(an_2)
+
+
+```
+
+
+- Is there a difference in lipid amounts between fall- and summer-reared butterflies?
+```{r}
+lipids_exp2 <- read.csv("https://raw.githubusercontent.com/Kaley-H/Monarch_Treatment-Diet/main/lipid_content.csv?token=GHSAT0AAAAAABR4K7ME6SS62SK5Y74IK3XMYRAKWPA")
+lipids_exp2 <- lipids_exp2 %>% select(-Notes) #remove notes column
+lipids_exp2[lipids_exp2 == "" | lipids_exp2 == " "] <- NA #replace cells that are blank or have a space with "NA"
+lipids2_exp2 <- na.omit(lipids_exp2)
+hist(lipids2_exp2$lipid_content) #data skewed
+shapiro.test(lipids2_exp2$lipid_content) #normality assumption violated
+
+cor.test(~pre_weight + Age, data = lipids2_exp2, conf.level = 0.95)
+ggplot(lipids2_exp2, aes(x = Age, y = pre_weight)) + geom_point() + geom_smooth(method = lm) + theme_cowplot(12)
+#data not normally distributed -- don't think this can be analyzed with a linear model
+
+#Full models
+#Anova(lm(lipid_content~Treatment*Plant*Sex*Age, data = lipids2_exp2), type = 3) --- gives 'aliased coefficients' error
+Anova(lm(lipid_content~Treatment*Plant*Age, data = lipids2_exp2), type = 3) #no interaction effects
+Anova(lm(lipid_content~Treatment+Plant+Age, data = lipids2_exp2), type = 2) #no significant main effects
+
+#compare lipids by treatment
+bartlett.test(lipid_content~Treatment, data = lipids2_exp2)
+summary(aov(lipid_content~Treatment, data = lipids2_exp2))
+an_3 <- lipids2_exp2 %>% anova_test(lipid_content~Treatment) %>% add_significance("p")
+ggplot(lipids2_exp2, aes(x = Treatment, y = lipid_content)) + labs(x = "Treatment", y = "Lipid content (g)", subtitle = get_test_label(an_3, detailed = TRUE)) + geom_boxplot(width = 0.3) + geom_jitter(width = 0) + theme_cowplot(12)
+rm(an_3)
+```
+
+
+### Diet
+- Is butterfly mass and/or wing lengths affected by different larval diets?
+```{r}
+#FWL ~ Plant
+summary(aov(FWL~Plant, data = Exp2_wings))
+an5 <- Exp2_wings %>% anova_test(FWL ~ Plant) %>% add_significance("p")
+ggplot(Exp2_wings, aes(x = Plant, y = FWL)) + 
+  geom_boxplot(width = 0.3) + stat_boxplot(geom = "errorbar", width = 0.15) + 
+  labs(x = "Milkweed Species", y = "Forewing Length (mm)", subtitle = get_test_label(an5, detailed = TRUE))+   theme_cowplot(12) + geom_jitter(width = 0)
+rm(an5)
+
+#HWL ~ Plant        
+summary(aov(HWL~Plant, data = Exp2_wings))
+an6 <- Exp2_wings %>% anova_test(HWL ~ Plant) %>% add_significance("p")
+ggplot(Exp2_wings, aes(x = Plant, y = HWL)) + 
+  geom_boxplot(width = 0.3) + stat_boxplot(geom = "errorbar", width = 0.15) + 
+  labs(x = "Milkweed Species", y = "Hindwing Length (mm)", subtitle = get_test_label(an6, detailed = TRUE))+   theme_cowplot(12) + geom_jitter(width = 0)
+rm(an6)
+```
+- Is there a difference in metabolic rates (resting and active) between diets?
+
+## Other Data Exploration
+- Sex or age effects on butterfly mass?
+  - *No effect on butterfly mass*
+```{r}
+Anova(lm(pre_flight_weight~Age*Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(pre_flight_weight~Age+Sex, data = Exp_2_data_08_07_21), type = 2)
+
+#examine residuals
+model_m = aov(pre_flight_weight~Age*Sex, data = Exp_2_data_08_07_21)
+res_m = resid(model_m)
+plot(fitted(model_m), res_m) #normally distributed
+abline(0,0)
+qqnorm(res_m)
+qqline(res_m)
+remove(model_m)
+remove(res_m)
+
+#interaction plot (should see no interaction)
+interaction.plot(x.factor = Exp_2_data_08_07_21$Age, #x-axis variable
+                 trace.factor = Exp_2_data_08_07_21$Sex, #variable for lines
+                 response = Exp_2_data_08_07_21$pre_flight_weight, #y-axis variable
+                 fun = mean, #metric to plot
+                 ylab = "Butterfly Mass (g)",
+                 xlab = "Butterfly Age",
+                 col = c("pink", "blue"),
+                 lty = 1, #line type
+                 lwd = 2, #line width
+                 trace.label = "Sex")
+
+#Add in plant effect?
+#Anova(lm(pre_flight_weight~Age*Sex*Plant, data = Exp_2_data_08_07_21), type = 3)
+#giving aliased coefficients error
+Anova(lm(pre_flight_weight~Age+Sex+Plant, data = Exp_2_data_08_07_21), type = 2)
+
+```
+*Appears to be an interaction in the graph, but not in the stats tests. Probably due to the limited number of data points for days 9 and 10 compared to day 8.*
+
+
+
+- Sex or age effects on metabolic rates?
+  - *No effect on average flight metabolic rate*
+  - *No effect on normalized average flight metabolic rate*
+  - *No effect on peak flight metabolic rate*
+  - *No effect on resting metabolic rate*
+  - *Mildly significant effect on normalized resting metabolic rate*
+```{r}
+#Interaction models
+#Average flight metabolic rate
+Anova(lm(mlHrCO2_avg ~ Age * Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(mlHrCO2_avg ~ Age + Sex, data = Exp_2_data_08_07_21), type = 2)
+ggplot(Exp_2_data_08_07_21, aes(x = Sex, y = mlHrCO2_avg)) + labs(y = "Avg FMR (mL/Hr)") + geom_boxplot(width = 0.3) + geom_jitter(width = 0) + theme_cowplot() + stat_compare_means(method = "anova", label.x = 1.25)
+
+
+#Normalized average flight metabolic rate
+Anova(lm(norm_CO2_avg ~ Age * Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(norm_CO2_avg ~ Age + Sex, data = Exp_2_data_08_07_21), type = 2)
+
+#Peak metabolic rate
+Anova(lm(mlHrCO2_peak ~ Age * Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(mlHrCO2_peak ~ Age + Sex, data = Exp_2_data_08_07_21), type = 2)
+
+#Resting metabolic rate
+Anova(lm(rmr_mlHrCO2 ~ Age * Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(rmr_mlHrCO2 ~ Age + Sex, data = Exp_2_data_08_07_21), type = 2)
+
+#Normalized resting metabolic rate
+Anova(lm(norm_rmr ~ Age * Sex, data = Exp_2_data_08_07_21), type = 3)
+Anova(lm(norm_rmr ~ Age + Sex, data = Exp_2_data_08_07_21), type = 2)
+
+
+#Further analyses on flight metabolic rate
+#Examine residuals
+model_FMR = aov(mlHrCO2_avg~Age*Sex, data = Exp_2_data_08_07_21)
+res_FMR = resid(model_FMR)
+plot(fitted(model_FMR), res_FMR) #skewed right - one data point way off, not sure why
+#Visualize data spread of FMR vs. Age
+plot(mlHrCO2_avg~Age, data = Exp_2_data_08_07_21)
+#Visualize data spread of FMR vs. Sex
+plot(mlHrCO2_avg~Sex, data = Exp_2_data_08_07_21)
+abline(0,0)
+qqnorm(res_FMR)
+qqline(res_FMR)
+remove(model_FMR)
+remove(res_FMR)
+#interaction plot (should see no interaction)
+interaction.plot(x.factor = Exp_2_data_08_07_21$Age, #x-axis variable
+                 trace.factor = Exp_2_data_08_07_21$Sex, #variable for lines
+                 response = Exp_2_data_08_07_21$mlHrCO2_avg, #y-axis variable
+                 fun = mean, #metric to plot
+                 ylab = "Avg Flight Metabolic Rate (mL/Hr)",
+                 xlab = "Butterfly Age",
+                 col = c("pink", "blue"),
+                 lty = 1, #line type
+                 lwd = 2, #line width
+                 trace.label = "Sex")
+```
+*Again seeing a graphical interaction (apparently) while statistical tests show no interaction. Probably due to uneven distribution of data points collected for each of the days.*
+
+Since resting metabolic rate had some differences between normalized and non-normalized significance in Age, an interaction model between butterfly mass and age was run
+```{r}
+Anova(lm(rmr_mlHrCO2 ~ Age * pre_flight_weight, data = Exp_2_data_08_07_21), type = 3)
+#post-hoc analyses?
+
+#check interaction in FMR too
+Anova(lm(mlHrCO2_avg ~ Age * pre_flight_weight, data = Exp_2_data_08_07_21), type = 3) 
+Anova(lm(mlHrCO2_avg ~ Age + pre_flight_weight, data = Exp_2_data_08_07_21), type = 2)
+```
+
+
+- Correlations between weight and metabolic rates? *(Expect to see metabolic rate scale with mass)*
+
+```{r}
+#NORMALITY ASSUMPTIONS MET?
+#Metabolic rate normality check
+hist(Exp_2_data_08_07_21$mlHrCO2_avg)
+shapiro.test(Exp_2_data_08_07_21$mlHrCO2_avg)
+ggboxplot(Exp_2_data_08_07_21, x = "Sex", y = "mlHrCO2_avg") #attempt to visualize outlier(s) - none plotted
+
+#Mass normality check
+hist(Exp_2_data_08_07_21$pre_flight_weight)
+#one butterfly way off
+shapiro.test(Exp_2_data_08_07_21$pre_flight_weight) #low p-value = non-normal
+ggboxplot(Exp_2_data_08_07_21, x = "Sex", y = "pre_flight_weight") #attempt to visualize outlier(s)
+
+```
+Because of the normality assumption being violated, mass data was re-examined and notes were consulted to determine if it would make sense to remove outliers. The data point at mass = 0.9 g was from a female (# FC5) noted to have had a swollen abdomen prior to flight test as well as bloated even further upon mortality. I wonder if this one was infected with something, then? The carcass was kept frozen. 
+
+*Further data was analyzed with FC5 data removed.*
+
+## Analyses with large female data point removed
+
+```{r}
+Exp_2_data_2 <- Exp_2_data_08_07_21[-c(18),]
+
+hist(Exp_2_data_2$pre_flight_weight)
+shapiro.test(Exp_2_data_2$pre_flight_weight) #p > 0.05 = normally distributed
+
+#test for homogeneity of variances and plot
+bartlett.test(pre_flight_weight~Treatment, data = Exp_2_data_2) 
+summary(aov(pre_flight_weight~Treatment, data = Exp_2_data_2))
+ggplot(Exp_2_data_2, aes(x = Treatment, y = pre_flight_weight)) + labs(x = "Rearing Treatment", y = "Butterfly mass (g)") + geom_boxplot(width = 0.3) + geom_jitter(width = 0) + theme_cowplot() + stat_compare_means(method = "anova", label.x = 0.6, label.y = 0.7) + facet_wrap(~Sex)
+
+
+#test for interactions between sex and treatment
+Anova(lm(pre_flight_weight ~ Sex * Treatment, data = Exp_2_data_2), type = 2)
+
+#FMR correlation with mass - saved graph as "Mass_FMR_corr2.png"
+ggplot(Exp_2_data_2, aes(x = pre_flight_weight, y = mlHrCO2_avg)) + 
+  labs(x = "Butterfly mass (g)", y = "Avg FMR (mL/Hr)") + geom_point() + 
+  geom_smooth(method = lm) + stat_regline_equation() + 
+  stat_cor(aes(label = ..rr.label..), label.y = 15) + theme_cowplot(12)
+cor.test(~mlHrCO2_avg+pre_flight_weight, data = Exp_2_data_2, conf.level = 0.95)
+
+#RMR correlation with mass - saved graph as "Mass_RMR_corr2.png"
+ggplot(Exp_2_data_2, aes(x = pre_flight_weight, y = rmr_mlHrCO2)) + 
+  labs(x = "Butterfly mass (g)", y = "RMR (mL/Hr)") + geom_point() + 
+  geom_smooth(method = lm) + stat_regline_equation() + 
+  stat_cor(aes(label = ..rr.label..), label.y = 1.3) + theme_cowplot(12)
+cor.test(~rmr_mlHrCO2+pre_flight_weight, data = Exp_2_data_2, conf.level = 0.95)
+
+```
+
+
+```{r}
+#Remove created objects
+rm(Exp_2_data_08_07_21)
+rm(Exp_2_data_2)
+rm(Exp2_wings)
+```
+
